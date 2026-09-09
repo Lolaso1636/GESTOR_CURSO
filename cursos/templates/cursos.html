@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de cursos</title>
+    <!-- Tailwind CSS v3 (minimalista y rápido) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+        }
+        .curso-card {
+            transition: box-shadow 0.15s ease, transform 0.1s ease;
+        }
+        .curso-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.02);
+            transform: translateY(-1px);
+        }
+        .enlace-accion {
+            transition: color 0.15s, background-color 0.15s;
+        }
+        .enlace-accion:hover {
+            background-color: #f1f5f9;
+        }
+        .empty-state {
+            background: #ffffff;
+            border: 1px dashed #d1d5db;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-700 p-4 md:p-6">
+
+    <main class="max-w-4xl mx-auto bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm p-6 md:p-8 border border-slate-200/60">
+
+        <!-- encabezado -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8 border-b border-slate-200/80 pb-5">
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-800 flex items-center gap-2">
+                    <span class="bg-slate-800 text-white text-sm font-medium px-3 py-1 rounded-full">📚</span>
+                    Cursos
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">Catálogo de cursos disponibles</p>
+            </div>
+            <a href="{% url 'crear_curso' %}"
+               class="enlace-accion inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">
+                Nuevo curso
+            </a>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL: lista de cursos -->
+        {% if cursos %}
+            <ul class="space-y-4" role="list">
+                {% for curso in cursos %}
+                <li class="curso-card bg-white border border-slate-200/80 rounded-xl p-5 md:p-6 shadow-sm transition-all">
+                    <div class="flex flex-col md:flex-row md:items-start gap-3 md:gap-6">
+                        <div class="flex-1 min-w-0">
+                            <h2 class="text-xl font-medium text-slate-800 truncate">{{ curso.titulo }}</h2>
+
+                            <p class="text-slate-600 text-sm mt-1.5 leading-relaxed">
+                                {{ curso.descripcion|default:"Sin descripción" }}
+                            </p>
+
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs font-medium text-slate-500">
+                                <span class="inline-flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full">
+                                    Nivel: {{ curso.nivel }}
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full">
+                                    Lecciones: {{ curso.leccion_set.count }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-row md:flex-col items-center md:items-end gap-2 md:gap-2.5 mt-2 md:mt-0 shrink-0">
+                            <a href="{% url 'detalle_curso' curso.pk %}"
+                               class="enlace-accion w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 rounded-lg transition-colors">
+                                Ver detalle
+                            </a>
+                            <a href="{% url 'eliminar_curso' curso.pk %}"
+                               onclick="return confirm('¿Está seguro de eliminar el curso?')"
+                               class="enlace-accion w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-rose-600 bg-rose-50/70 hover:bg-rose-100/80 rounded-lg transition-colors">
+                                Eliminar
+                            </a>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <!-- estado vacío (sin cursos) -->
+            <div class="empty-state rounded-xl p-10 text-center">
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-4xl mb-1">📭</span>
+                    <h3 class="text-lg font-medium text-slate-600">No hay cursos disponibles en este momento</h3>
+                    <a href="{% url 'crear_curso' %}"
+                       class="mt-3 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">
+                        Crear un nuevo curso
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+    </main>
+
+</body>
+</html>
