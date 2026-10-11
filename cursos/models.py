@@ -9,6 +9,10 @@ class Curso(models.Model):
     descripcion = models.TextField()
     nivel = models.CharField(max_length=20)
 
+    class Meta:
+        verbose_name = 'curso'
+        verbose_name_plural = 'cursos'
+
     def __str__(self):
         return self.titulo
 
@@ -23,6 +27,10 @@ class Leccion(models.Model):
     duracion = models.IntegerField()
     estado = models.CharField(max_length=20, default='Borrador')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'lección'
+        verbose_name_plural = 'lecciones'
 
     def __str__(self):
         return f"{self.titulo} ({self.curso.titulo})"

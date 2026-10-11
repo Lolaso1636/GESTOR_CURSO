@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'cursos',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -90,3 +91,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Autenticación
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'lista_cursos'
+LOGOUT_REDIRECT_URL = 'login'

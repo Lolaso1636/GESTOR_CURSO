@@ -1,0 +1,149 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Editar grupo | Gestor de Cursos{% endblock %}
+
+{% block content %}
+<section class="max-w-5xl mx-auto space-y-6">
+
+	<!-- Encabezado -->
+	<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+		<div class="flex items-center gap-4">
+			<div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md flex-shrink-0">
+				{{ grupo.name|slice:":1"|upper }}
+			</div>
+			<div>
+				<p class="text-sm font-medium text-indigo-600">Administración</p>
+				<h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ grupo.name }}</h1>
+				<p class="mt-1 text-slate-500">Modifica el nombre del grupo y administra sus miembros.</p>
+			</div>
+		</div>
+		<a href="{% url 'grupos' %}"
+		   class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition">
+			<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+			Volver a grupos
+		</a>
+	</div>
+
+	<!-- Formulario: nombre del grupo -->
+	<form method="post" class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+		{% csrf_token %}
+		<label for="name" class="block text-sm font-semibold text-slate-700">Nombre del grupo</label>
+		<div class="mt-2 flex flex-col sm:flex-row gap-3">
+			<input id="name" name="name" type="text" required maxlength="150"
+				   value="{{ grupo.name }}"
+				   placeholder="Ej: Administradores, Editores…"
+				   class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none">
+			<button type="submit"
+					class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 whitespace-nowrap">
+				<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+				Guardar cambios
+			</button>
+		</div>
+		<p class="mt-1.5 text-right text-xs text-slate-400" id="charCount">0 / 150</p>
+	</form>
+
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+		<!-- Miembros del grupo -->
+		<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+			<div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+				<h2 class="font-semibold text-slate-900">Miembros</h2>
+				<span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600">
+					{{ miembros|length }}
+				</span>
+			</div>
+
+			{% if miembros %}
+			<ul class="divide-y divide-slate-100">
+				{% for miembro in miembros %}
+				<li class="flex items-center justify-between gap-3 px-5 py-3">
+					<div class="flex items-center gap-3 min-w-0">
+						<div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-semibold flex-shrink-0">
+							{{ miembro.username|slice:":1"|upper }}
+						</div>
+						<div class="min-w-0">
+							<p class="truncate text-sm font-medium text-slate-800">{{ miembro.get_full_name|default:miembro.username }}</p>
+							<p class="truncate text-xs text-slate-500">@{{ miembro.username }}</p>
+						</div>
+					</div>
+					<form method="post" action="{% url 'eliminar_usuario_grupo' grupo.id %}" class="flex-shrink-0">
+						{% csrf_token %}
+						<input type="hidden" name="id_user" value="{{ miembro.id }}">
+						<button type="submit"
+								onclick="return confirm('¿Quitar a {{ miembro.get_full_name|default:miembro.username|escapejs }} del grupo?');"
+								class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50">
+							<i class="fa-solid fa-user-minus" aria-hidden="true"></i>
+							Quitar
+						</button>
+					</form>
+				</li>
+				{% endfor %}
+			</ul>
+			{% else %}
+			<p class="px-5 py-8 text-center text-sm text-slate-500">
+				Este grupo no tiene miembros aún.<br>
+				<span class="text-xs text-slate-400">Agrégalos desde la lista de usuarios disponibles.</span>
+			</p>
+			{% endif %}
+		</div>
+
+		<!-- Usuarios disponibles -->
+		<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+			<div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+				<h2 class="font-semibold text-slate-900">Usuarios disponibles</h2>
+				<span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+					{{ no_miembros|length }}
+				</span>
+			</div>
+
+			{% if no_miembros %}
+			<ul class="divide-y divide-slate-100">
+				{% for usuario in no_miembros %}
+				<li class="flex items-center justify-between gap-3 px-5 py-3">
+					<div class="flex items-center gap-3 min-w-0">
+						<div class="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-semibold flex-shrink-0">
+							{{ usuario.username|slice:":1"|upper }}
+						</div>
+						<div class="min-w-0">
+							<p class="truncate text-sm font-medium text-slate-800">{{ usuario.get_full_name|default:usuario.username }}</p>
+							<p class="truncate text-xs text-slate-500">@{{ usuario.username }}</p>
+						</div>
+					</div>
+					<form method="post" action="{% url 'agregar_usuario_grupo' grupo.id %}" class="flex-shrink-0">
+						{% csrf_token %}
+						<input type="hidden" name="id_user" value="{{ usuario.id }}">
+						<button type="submit"
+								class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+							<i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+							Agregar
+						</button>
+					</form>
+				</li>
+				{% endfor %}
+			</ul>
+			{% else %}
+			<p class="px-5 py-8 text-center text-sm text-slate-500">
+				Todos los usuarios ya son miembros de este grupo.
+			</p>
+			{% endif %}
+		</div>
+	</div>
+</section>
+
+<!-- Contador de caracteres del nombre -->
+<script>
+	const nameInput = document.getElementById('name');
+	const charCount = document.getElementById('charCount');
+
+	function updateCharCount() {
+		const length = nameInput.value.length;
+		charCount.textContent = `${length} / 150`;
+		charCount.classList.toggle('text-red-500', length > 140);
+		charCount.classList.toggle('text-amber-500', length > 120 && length <= 140);
+		charCount.classList.toggle('text-slate-400', length <= 120);
+	}
+
+	nameInput.addEventListener('input', updateCharCount);
+	updateCharCount();
+</script>
+{% endblock %}

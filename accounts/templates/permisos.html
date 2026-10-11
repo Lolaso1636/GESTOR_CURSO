@@ -1,0 +1,195 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Permisos | Gestor de Cursos{% endblock %}
+
+{% block content %}
+<section class="max-w-5xl mx-auto space-y-6">
+
+	<!-- Encabezado -->
+	<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+		<div>
+			<p class="text-sm font-medium text-indigo-600">Administración</p>
+			<h1 class="text-3xl font-bold tracking-tight text-slate-900">Permisos</h1>
+			<p class="mt-1 text-slate-500">Define qué puede ver y hacer cada grupo dentro del sistema.</p>
+		</div>
+		<a href="{% url 'grupos' %}"
+		   class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition">
+			<i class="fa-solid fa-users" aria-hidden="true"></i>
+			Administrar grupos
+		</a>
+	</div>
+
+	{% if not grupos %}
+	<!-- Sin grupos -->
+	<div class="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+		<div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 text-xl">
+			<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+		</div>
+		<p class="font-medium text-slate-800">Todavía no hay grupos</p>
+		<p class="mt-1 text-sm text-slate-500">Crea un grupo primero para poder asignarle permisos.</p>
+		<a href="{% url 'grupos' %}"
+		   class="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+			<i class="fa-solid fa-plus" aria-hidden="true"></i>
+			Crear grupo
+		</a>
+	</div>
+	{% else %}
+
+	{% if guardado %}
+	<div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+		<i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+		Permisos de <strong class="font-semibold">{{ grupo.name }}</strong> guardados correctamente.
+	</div>
+	{% endif %}
+
+	<!-- Selector de grupo -->
+	<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+		<p class="text-sm font-semibold text-slate-700">Grupo</p>
+		<div class="mt-3 flex flex-wrap gap-2">
+			{% for opcion in grupos %}
+			<a href="?grupo={{ opcion.id }}"
+			   class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition
+			          {% if opcion.id == grupo.id %}border-indigo-600 bg-indigo-600 text-white shadow-sm{% else %}border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50{% endif %}">
+				<span class="flex h-5 w-5 items-center justify-center rounded text-xs font-bold
+				             {% if opcion.id == grupo.id %}bg-white/20{% else %}bg-slate-100 text-slate-500{% endif %}">
+					{{ opcion.name|slice:":1"|upper }}
+				</span>
+				{{ opcion.name }}
+			</a>
+			{% endfor %}
+		</div>
+	</div>
+
+	<!-- Formulario de permisos -->
+	<form method="post" id="form-permisos" class="space-y-6">
+		{% csrf_token %}
+		<input type="hidden" name="grupo" value="{{ grupo.id }}">
+
+		<!-- Barra de acciones -->
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+			<p class="text-sm text-slate-500">
+				<span id="contador" class="font-semibold text-slate-800">0</span> permisos seleccionados para
+				<span class="font-semibold text-indigo-600">{{ grupo.name }}</span>
+			</p>
+			<div class="flex gap-2">
+				<button type="button" data-marcar="todo"
+						class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50">
+					<i class="fa-solid fa-check-double" aria-hidden="true"></i>
+					Marcar todo
+				</button>
+				<button type="button" data-marcar="nada"
+						class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50">
+					<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+					Quitar todo
+				</button>
+			</div>
+		</div>
+
+		{% for seccion in tabla %}
+		<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+			<div class="border-b border-slate-200 px-5 py-4">
+				<h2 class="font-semibold text-slate-900">{{ seccion.nombre }}</h2>
+			</div>
+
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm">
+					<thead>
+						<tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+							<th class="px-5 py-3 text-left">Modelo</th>
+							<th class="px-3 py-3 text-center"><i class="fa-regular fa-eye mr-1" aria-hidden="true"></i>Ver</th>
+							<th class="px-3 py-3 text-center"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>Crear</th>
+							<th class="px-3 py-3 text-center"><i class="fa-solid fa-pen mr-1" aria-hidden="true"></i>Editar</th>
+							<th class="px-3 py-3 text-center"><i class="fa-solid fa-trash mr-1" aria-hidden="true"></i>Eliminar</th>
+							<th class="px-3 py-3 text-center">Todos</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-slate-100">
+						{% for fila in seccion.filas %}
+						<tr class="fila-permisos transition hover:bg-slate-50/60">
+							<td class="px-5 py-3">
+								<p class="font-medium text-slate-800">{{ fila.nombre }}</p>
+								{% for permiso in fila.otros %}
+								<label class="mt-1.5 flex items-center gap-2 text-xs text-slate-500">
+									<input type="checkbox" name="permisos" value="{{ permiso.id }}"
+										   {% if permiso.id in permisos_grupo %}checked{% endif %}
+										   class="permiso h-3.5 w-3.5 rounded border-slate-300 accent-indigo-600">
+									{{ permiso.name }}
+								</label>
+								{% endfor %}
+							</td>
+							{% for permiso in fila.celdas %}
+							<td class="px-3 py-3 text-center">
+								{% if permiso %}
+								<input type="checkbox" name="permisos" value="{{ permiso.id }}" title="{{ permiso.name }}"
+									   {% if permiso.id in permisos_grupo %}checked{% endif %}
+									   class="permiso h-4 w-4 cursor-pointer rounded border-slate-300 accent-indigo-600">
+								{% else %}
+								<span class="text-slate-300">—</span>
+								{% endif %}
+							</td>
+							{% endfor %}
+							<td class="px-3 py-3 text-center">
+								<input type="checkbox" title="Marcar toda la fila"
+									   class="marcar-fila h-4 w-4 cursor-pointer rounded border-slate-300 accent-purple-600">
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{% endfor %}
+
+		<!-- Guardar -->
+		<div class="sticky bottom-4 flex justify-end">
+			<button type="submit"
+					class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-700">
+				<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+				Guardar permisos
+			</button>
+		</div>
+	</form>
+	{% endif %}
+</section>
+
+<script>
+	const formulario = document.getElementById('form-permisos');
+
+	if (formulario) {
+		const permisos = formulario.querySelectorAll('.permiso');
+		const contador = document.getElementById('contador');
+
+		// Actualiza el contador y el estado de los checkbox "Todos" de cada fila
+		function actualizar() {
+			contador.textContent = formulario.querySelectorAll('.permiso:checked').length;
+			formulario.querySelectorAll('.fila-permisos').forEach(fila => {
+				const casillas = fila.querySelectorAll('.permiso');
+				const marcadas = fila.querySelectorAll('.permiso:checked').length;
+				const todos = fila.querySelector('.marcar-fila');
+				todos.checked = marcadas === casillas.length;
+				todos.indeterminate = marcadas > 0 && marcadas < casillas.length;
+			});
+		}
+
+		// "Todos" de una fila
+		formulario.querySelectorAll('.marcar-fila').forEach(todos => {
+			todos.addEventListener('change', () => {
+				todos.closest('tr').querySelectorAll('.permiso').forEach(c => c.checked = todos.checked);
+				actualizar();
+			});
+		});
+
+		// "Marcar todo" / "Quitar todo"
+		formulario.querySelectorAll('[data-marcar]').forEach(boton => {
+			boton.addEventListener('click', () => {
+				const marcar = boton.dataset.marcar === 'todo';
+				permisos.forEach(c => c.checked = marcar);
+				actualizar();
+			});
+		});
+
+		permisos.forEach(c => c.addEventListener('change', actualizar));
+		actualizar();
+	}
+</script>
+{% endblock %}
